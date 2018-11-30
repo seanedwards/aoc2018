@@ -1,2 +1,5 @@
-# aoc2018
-Advent of Code 2018 woooo
+# Aoc2018
+
+I don't know Elixir at all.
+
+
