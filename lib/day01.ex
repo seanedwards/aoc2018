@@ -15,13 +15,13 @@ defmodule Day01 do
   def part_two do
     input_as_numbers()
     |> Stream.cycle
-    |> Stream.scan([], &Day01.accumulator/2)
+    |> Stream.scan([], fn
+      num, [freq | seen] -> [ freq + num, freq ] ++ seen
+      num, [] -> [ num ]
+    end)
     |> Stream.drop_while(fn([ freq | seen ]) -> !Enum.member?(seen, freq) end)
     |> Stream.map(&hd/1)
     |> Enum.take(1)
     |> hd
   end
-
-  def accumulator(num, [ freq | seen ]), do: [ freq + num, freq ] ++ seen
-  def accumulator(num, _), do: [ num ]
 end

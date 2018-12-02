@@ -9,6 +9,11 @@ defmodule Aoc2018 do
         File.read!("priv/day#{String.pad_leading(to_string(day), 2, "0")}/input.txt")
       end
 
+      def input_as_lines do
+        String.split(input(), "\r\n")
+        |> Enum.filter(&(&1 != ""))
+      end
+
       def output(data) do
         day = @day
         File.write!("priv/day#{String.pad_leading(to_string(day), 2, "0")}/output.txt", data)
