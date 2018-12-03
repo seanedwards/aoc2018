@@ -10,7 +10,8 @@ defmodule Aoc2018 do
       end
 
       def input_as_lines do
-        String.split(input(), "\r\n")
+        String.split(input(), "\n")
+        |> Enum.map(fn(line) -> String.trim(line, "\r") end)
         |> Enum.filter(&(&1 != ""))
       end
 
@@ -18,6 +19,14 @@ defmodule Aoc2018 do
         day = @day
         File.write!("priv/day#{String.pad_leading(to_string(day), 2, "0")}/output.txt", data)
       end
+
     end
+  end
+
+
+  def pairwise(list), do: pairwise(list, [])
+  def pairwise([ last ], ret), do: ret
+  def pairwise([ lhs | tail ], ret) do
+    pairwise(tail, (tail |> Enum.map(fn(rhs) -> { lhs, rhs } end)) ++ ret)
   end
 end
