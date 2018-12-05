@@ -1,6 +1,8 @@
 defmodule Day04 do
   use Aoc2018, day: 4
 
+  # I hate all of this.
+
   def parse_line(line) do
     regex = ~r/\[(?<year>\d\d\d\d)-(?<month>\d\d)-(?<day>\d\d) (?<hour>\d\d):(?<minute>\d\d)\] (?<instruction>.+)/
     captures = Regex.named_captures(regex, line)
@@ -43,31 +45,61 @@ defmodule Day04 do
     |> Enum.map(&parse_line/1)
     |> Enum.sort_by(&({&1.time.year, &1.time.month, &1.time.day, &1.time.hour, &1.time.minute}))
     |> parse_instructions(nil, []) |> Enum.chunk_every(2)
+    |> Enum.map(fn [{time_asleep, guard_id, :sleep}, {time_awake, _, :wake}] -> %{
+      guard: guard_id,
+      minutes_asleep: NaiveDateTime.diff(time_awake, time_asleep, :second) / 60,
+      sleep: time_asleep,
+      wake: time_awake
+    } end)
   end
 
   def part_one do
-    naps = schedule() 
+    schedule = schedule() 
+    schedule_by_guard = schedule 
+    |> Enum.group_by(fn %{ guard: guard } -> guard end)
 
-    { sleepiest_guard, minutes_asleep } = naps
-    |> Enum.map(fn [sleep, wake] -> { sleep |> elem(1), NaiveDateTime.diff(wake |> elem(0), sleep |> elem(0), :second)} end)
-    |> Enum.group_by(fn {guard, _} -> guard end)
-    |> Enum.map(fn {guard, naps} -> {guard, (for nap <- naps, do: elem(nap, 1))} end)
+    { sleepiest_guard, minutes_asleep } = schedule_by_guard
+    |> Enum.map(fn {guard, naps} -> {guard, (for nap <- naps, do: nap.minutes_asleep)} end)
     |> Enum.map(fn {guard, list} -> { guard, list |> Enum.sum() } end)
     |> Enum.sort_by(&(&1 |> elem(1)))
     |> Enum.reverse()
     |> hd
-    
-    naps = naps
-    |> Enum.filter(fn [{_, guard, :sleep}, {_, guard, :wake}] -> guard == sleepiest_guard end)
 
     nap_minutes = for minute <- 0..59,
-      count = naps |> Enum.filter(fn [{sleep_time, _, :sleep}, {wake_time, _, :wake}] -> minute >= sleep_time.minute && minute < wake_time.minute end) |> Enum.count() do
+      count = schedule_by_guard[sleepiest_guard]
+      |> Enum.filter(fn %{sleep: sleep_time, wake: wake_time} -> minute >= sleep_time.minute && minute < wake_time.minute end) |> Enum.count() do
         {minute, count}
       end
-    most_common_minute = nap_minutes |> Enum.sort_by(&(&1 |> elem(1)))
+
+    most_common_minute = nap_minutes
+    |> Enum.sort_by(&(&1 |> elem(1)))
     |> Enum.reverse()
     |> hd |> elem(0)
+
     sleepiest_guard * most_common_minute
+  end
+
+  def part_two do
+    {guard, minute, _} = 
+    for minute <- 0..59 do
+      items = schedule
+      |> Enum.group_by(fn %{ guard: guard } -> guard end) |> Map.to_list()
+      |> Enum.map(fn { guard, items } -> {
+        guard,
+        minute,
+        items
+        |> Enum.filter(fn event -> minute >= event.sleep.minute && minute < event.wake.minute end)
+        |> Enum.count()
+      } end)
+      |> Enum.sort_by(fn {_, _, items} -> items end) 
+      |> Enum.reverse()
+      |> hd
+    end
+    |> Enum.sort_by(fn {_, _, items} -> items end) 
+    |> Enum.reverse()
+    |> hd
+  
+    guard * minute
   end
 
 end
