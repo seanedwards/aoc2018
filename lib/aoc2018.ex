@@ -6,7 +6,7 @@ defmodule Aoc2018 do
 
       def input do
         day = @day
-        File.read!("priv/day#{String.pad_leading(to_string(day), 2, "0")}.txt")
+        File.read!("priv/input/day#{String.pad_leading(to_string(day), 2, "0")}.txt")
       end
 
       def input_as_lines do
@@ -17,7 +17,7 @@ defmodule Aoc2018 do
 
       def output(data) do
         day = @day
-        File.write!("priv/day#{String.pad_leading(to_string(day), 2, "0")}/output.txt", data)
+        File.write!("priv/output/day#{String.pad_leading(to_string(day), 2, "0")}.txt", data)
       end
 
     end
